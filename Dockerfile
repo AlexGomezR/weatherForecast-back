@@ -14,6 +14,6 @@ RUN npm install
 #Copiar directorio actual dentro del contenedor actual
 COPY . .
 
-EXPOSE 3000
+EXPOSE 5000
 
 CMD ["npm", "start"]
