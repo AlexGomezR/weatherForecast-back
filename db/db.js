@@ -5,7 +5,6 @@ const __dirname = currentDir().__dirname;
 
 export async function connectToDatabase() {
   try {
-    console.log(process.env.DB_CONNECTION);
     await mongoose.connect(process.env.DB_CONNECTION, {
       useNewUrlParser: true,
       useUnifiedTopology: true,

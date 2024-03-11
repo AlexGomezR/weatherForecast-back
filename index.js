@@ -10,30 +10,26 @@ dotenv.config();
 
 // Función para utilizar path en ES Modules (exportamos para utilizarla globalmente)
 export function currentDir() {
-  console.log(import.meta.url);
   const __filename = fileURLToPath(import.meta.url);
   const __dirname = dirname(__filename);
-  console.log(__dirname);
-  console.log(__filename);
   return { __dirname, __filename };
 }
 
 const { __dirname } = currentDir();
 
-//Configurar el puerto desde la variable de entorno
 const PORT = process.env.PORT;
 
 //Creación de aplicación express
 const app = express();
 
-//Middleware
+//Middlewares
 app.use(express.json());
 app.use(cors());
 
 //Conexión a base de datos
 connectToDatabase();
 
-// Rutas
+//Rutas
 app.use("/api", apiRouter);
 app.use("/getHours", apiRouter);
 
@@ -42,5 +38,4 @@ app.listen(PORT, () => {
   console.log(`Server listening on port ${PORT}`);
 });
 
-//Exportar aplicación express
 export default app;

@@ -13,6 +13,7 @@ controller.getData = async (req, res) => {
       "message.lat": Number(latitude),
       "message.lon": Number(longitude),
     });
+    //Si existe una registro anterior a 3h se elimina
     if (data && data.time <= threeHoursBefore) {
       await modelData.deleteOne({ _id: data.id });
       data = null;
@@ -55,18 +56,19 @@ controller.getDataHours = async (req, res) => {
     const hours = parseInt(req.params.hours);
     const latitude = parseInt(req.params.latitude);
     const longitude = parseInt(req.params.longitude);
+    let sendData;
+    let check = 0; //Flag para controlar si existe registro con la hora indicada
 
     const api_key = process.env.API_KEY;
     const apiUrl = `https://api.openweathermap.org/data/2.5/forecast?lat=${latitude}&lon=${longitude}&appid=${api_key}`;
     const response = await fetch(apiUrl);
     const data = await response.json();
-    let sendData = undefined;
-    let check = 0;
     if (response.status === 200) {
       let i = 0;
       let ts;
       let date;
       let tsHour;
+      //Bucle para recorrer todos los registros list
       do {
         ts = data.list[i].dt * 1000;
         date = new Date(ts);
@@ -78,9 +80,11 @@ controller.getDataHours = async (req, res) => {
         }
         i++;
       } while (i < data.list.length);
+      //Comprobar si se encuentra información
       if (check === 1) {
         res.status(200).send(sendData);
       } else {
+        //Status 204 porque la llamada es correcta pero no devuelve información
         return res.status(204).send();
       }
     } else {
