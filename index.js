@@ -10,8 +10,11 @@ dotenv.config();
 
 // Función para utilizar path en ES Modules (exportamos para utilizarla globalmente)
 export function currentDir() {
+  console.log(import.meta.url);
   const __filename = fileURLToPath(import.meta.url);
   const __dirname = dirname(__filename);
+  console.log(__dirname);
+  console.log(__filename);
   return { __dirname, __filename };
 }
 

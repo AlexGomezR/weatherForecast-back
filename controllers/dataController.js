@@ -1,7 +1,5 @@
 import modelData from "../db/dataModel.js";
-import { currentDir } from "../index.js";
 
-const __dirname = currentDir().__dirname;
 const controller = {};
 
 controller.getData = async (req, res) => {
@@ -15,7 +13,6 @@ controller.getData = async (req, res) => {
       "message.lat": Number(latitude),
       "message.lon": Number(longitude),
     });
-
     if (data && data.time <= threeHoursBefore) {
       await modelData.deleteOne({ _id: data.id });
       data = null;
@@ -46,7 +43,7 @@ controller.getData = async (req, res) => {
       daily: daily,
     };
 
-    res.status(200).send(data);
+    res.status(200).send(sendData);
   } catch (error) {
     console.error("Error en el controlador getData:", error);
     res.status(500).send();
@@ -56,20 +53,39 @@ controller.getData = async (req, res) => {
 controller.getDataHours = async (req, res) => {
   try {
     const hours = parseInt(req.params.hours);
-    let newData = [];
+    const latitude = parseInt(req.params.latitude);
+    const longitude = parseInt(req.params.longitude);
 
-    let data = await modelData.find();
-
-    for (let i = 0; i < data.length; i++) {
-      for (let j = 0; j < data[i].message.hourly.length; j++) {
-        let dt = new Date(data[i].message.hourly[j].dt * 1000);
-        let dtHour = dt.getHours();
-        if (dtHour === hours) {
-          newData.push(data[i].message.hourly[j]);
+    const api_key = process.env.API_KEY;
+    const apiUrl = `https://api.openweathermap.org/data/2.5/forecast?lat=${latitude}&lon=${longitude}&appid=${api_key}`;
+    const response = await fetch(apiUrl);
+    const data = await response.json();
+    let sendData = undefined;
+    let check = 0;
+    if (response.status === 200) {
+      let i = 0;
+      let ts;
+      let date;
+      let tsHour;
+      do {
+        ts = data.list[i].dt * 1000;
+        date = new Date(ts);
+        tsHour = date.getHours();
+        if (tsHour === hours) {
+          sendData = data.list[i];
+          check = 1;
+          break;
         }
+        i++;
+      } while (i < data.list.length);
+      if (check === 1) {
+        res.status(200).send(sendData);
+      } else {
+        return res.status(204).send();
       }
+    } else {
+      return res.status(400).send();
     }
-    res.status(200).send(newData);
   } catch (error) {
     console.error("Error en el controlador getDataHours:", error);
     res.status(500).send();
